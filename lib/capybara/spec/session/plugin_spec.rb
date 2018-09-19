@@ -1,6 +1,7 @@
 # frozen_string_literal: true
 
 require 'capybara/plugins/select2'
+require 'capybara/plugins/react_select'
 
 Capybara::SpecHelper.spec 'Plugin', requires: [:js] do
   before do
@@ -82,5 +83,65 @@ Capybara::SpecHelper.spec 'Plugin', requires: [:js] do
     Capybara.default_plugin[:select] = :select2
     @session.select 'Miss', from: 'Title', using: nil
     expect(@session.find_field('Title').value).to eq('Miss')
+  end
+
+  context "with react select 2", :focus_ do
+    before do
+      @session.visit('https://react-select.com/home')
+    end
+
+    it 'should select an option' do
+      @session.select 'Florida', from: 'Click this to focus the single select element', using: :react_select
+      expect(@session).to have_field(type: 'select', with: 'FL', visible: false)
+    end
+
+    it 'should remain selected if called twice on a single select' do
+      @session.select 'Florida', from: 'Click this to focus the single select element', using: :react_select
+      @session.select 'Florida', from: 'Click this to focus the single select element', using: :react_select
+      expect(@session).to have_field(type: 'select', with: 'FL', visible: false)
+    end
+
+    it 'should work with multiple select' do
+      @session.select 'Pennsylvania', from: 'Click this to focus the multiple select element', using: :react_select
+      @session.select 'California', from: 'Click this to focus the multiple select element', using: :react_select
+      expect(@session).to have_select(multiple: true, selected: %w[Pennsylvania California], visible: false)
+      @session.unselect 'Pennsylvania', from: 'Click this to focus the multiple select element', using: :react_select
+      expect(@session).to have_select(multiple: true, selected: %w[California], visible: false)
+      @session.unselect 'California', from: 'Click this to focus the multiple select element', using: :react_select
+      expect(@session).to have_select(multiple: true, selected: %w[], visible: false)
+    end
+
+    it 'should not reselect if already selected' do
+      @session.select 'Pennsylvania', from: 'Click this to focus the multiple select element', using: :react_select
+      @session.select 'Pennsylvania', from: 'Click this to focus the multiple select element', using: :react_select
+      expect(@session).to have_select(multiple: true, selected: %w[Pennsylvania], visible: false)
+      @session.unselect 'Pennsylvania', from: 'Click this to focus the multiple select element', using: :react_select
+      @session.unselect 'Pennsylvania', from: 'Click this to focus the multiple select element', using: :react_select
+      expect(@session).to have_select(multiple: true, selected: %w[], visible: false)
+    end
+
+    it 'should work with id' do
+      @session.select 'Florida', from: 'id_label_single', using: :react_select
+      expect(@session).to have_field(type: 'select', with: 'FL', visible: false)
+    end
+
+    it 'should work with name', :focus_ do
+      @session.select 'Purple', from: 'color', using: :react_select
+      expect(@session).to have_css('input[type=hidden][name=color]', visible: false) { |el| el.value == 'purple' }
+    end
+
+    it 'works without :from' do
+      @session.within(:css, 'div.s2-example:nth-of-type(2) p:first-child') do
+        @session.select 'Florida', using: :react_select
+        expect(@session).to have_field(type: 'select', with: 'FL', visible: false)
+      end
+    end
+
+    it 'works when called on the select box' do
+      el = @session.find(:css, 'select#id_label_single', visible: false)
+      el.select 'Florida', using: :react_select
+      expect(@session).to have_field(type: 'select', with: 'FL', visible: false)
+    end
+
   end
 end

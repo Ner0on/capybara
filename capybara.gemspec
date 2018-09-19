@@ -38,6 +38,7 @@ Gem::Specification.new do |s|
   s.add_development_dependency('launchy', ['>= 2.0.4'])
   s.add_development_dependency('minitest')
   s.add_development_dependency('puma')
+  s.add_development_dependency('byebug')
   s.add_development_dependency('rake')
   s.add_development_dependency('rspec', ['>= 3.4.0'])
   s.add_development_dependency('selenium-webdriver', ['~>3.5'])
