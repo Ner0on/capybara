@@ -94,7 +94,9 @@ Capybara.add_selector(:link) do
               when true
                 XPath.attr(:href)
               when Regexp
-                nil # needs to be handled in filter
+                regexp_to_substrings(href).map do |str|
+                  XPath.attr(:href).contains(str)
+                end.reduce(&:&)
               else
                 XPath.attr(:href) == href.to_s
               end
@@ -474,7 +476,9 @@ Capybara.add_selector(:element) do
   expression_filter(:attributes, matcher: /.+/) do |xpath, name, val|
     case val
     when Regexp
-      xpath
+      regexp_to_substrings(val).inject(xpath) do |xp, str|
+        xp[XPath.attr(name).contains(str)]
+      end
     when true
       xpath[XPath.attr(name)]
     when false
