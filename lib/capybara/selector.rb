@@ -134,13 +134,19 @@ Capybara.add_selector(:link) do
 
   describe_expression_filters do |**options|
     desc = +''
-    desc << " with href #{options[:href].inspect}" if options[:href] && !options[:href].is_a?(Regexp)
+    if (href = options[:href])
+      if !href.is_a?(Regexp)
+        desc << " with href #{href.inspect}"
+      elsif regexp_to_substrings(href).any?
+        desc << " with href matching #{href.inspect}"
+      end
+    end
     desc << ' with no href attribute' if options.fetch(:href, true).nil?
     desc
   end
 
   describe_node_filters do |href: nil, **|
-    " with href matching #{href.inspect}" if href.is_a? Regexp
+    " with href matching #{href.inspect}" if href.is_a?(Regexp) && regexp_to_substrings(href).empty?
   end
 end
 

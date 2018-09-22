@@ -443,7 +443,7 @@ module Capybara
     def regexp_to_substrings(regexp)
       return [] unless regexp.options.zero?
       regexp.source.match(CONVERTIBLE_REGEXP) do |match|
-        match.captures.reject &:empty?
+        match.captures.reject(&:empty?)
       end || []
     end
 
